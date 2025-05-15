@@ -13,23 +13,21 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v3
 
-    - name: Install SSH key
-      uses: webfactory/ssh-agent@v0.7.0
-      with:
-        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+    - name: Set SSH key permissions
+      run: chmod 600 ec2-key.pem
 
     - name: Copy files to EC2
       run: |
-        ssh -o StrictHostKeyChecking=no ec2-user@<YOUR_EC2_PUBLIC_IP> << 'EOF'
+        ssh -i ec2-key.pem -o StrictHostKeyChecking=no ubuntu@ec2-65-0-29-154 << 'EOF'
           docker rm -f nodeapp || true
           docker rmi nodeapp || true
         EOF
 
-        scp -r . ec2-user@<YOUR_EC2_PUBLIC_IP>:~/app
+        scp -i ec2-key.pem -o StrictHostKeyChecking=no -r . ec2-user@<YOUR_EC2_PUBLIC_IP>:~/app
 
     - name: Build and run Docker container on EC2
       run: |
-        ssh -o StrictHostKeyChecking=no ec2-user@<YOUR_EC2_PUBLIC_IP> << 'EOF'
+        ssh -i ec2-key.pem -o StrictHostKeyChecking=no ec2-user@<YOUR_EC2_PUBLIC_IP> << 'EOF'
           cd ~/app
           docker build -t nodeapp .
           docker run -d -p 80:3000 --name nodeapp nodeapp
