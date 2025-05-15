@@ -18,7 +18,7 @@ jobs:
 
     - name: Copy files to EC2
       run: |
-        ssh -i ec2-key.pem -o StrictHostKeyChecking=no ubuntu@ec2-65-0-29-154 << 'EOF'
+        ssh -i ec2-key.pem -o StrictHostKeyChecking=no ubuntu@65.0.29.154 << 'EOF'
           docker rm -f nodeapp || true
           docker rmi nodeapp || true
         EOF
