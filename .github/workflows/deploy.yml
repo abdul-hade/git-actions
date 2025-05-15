@@ -24,6 +24,7 @@ jobs:
     - name: Unzip and deploy on EC2
       run: |
         ssh -i ec2-key.pem -o StrictHostKeyChecking=no ubuntu@65.0.29.154 << 'EOF'
+          sudo apt update && sudo apt install unzip -y
           rm -rf ~/app
           mkdir ~/app
           unzip -o ~/app.zip -d ~/app
@@ -33,6 +34,7 @@ jobs:
           docker build -t nodeapp .
           docker run -d -p 80:3000 --name nodeapp nodeapp
         EOF
+
 
 
     - name: Build and run Docker container on EC2
