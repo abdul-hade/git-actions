@@ -16,26 +16,14 @@ jobs:
     - name: Set SSH key permissions
       run: chmod 600 ec2-key.pem
 
-    - name: Archive and copy files to EC2
-      run: |
-        zip -r app.zip . -x ".git/*"
-        scp -i ec2-key.pem -o StrictHostKeyChecking=no app.zip ubuntu@65.0.29.154:~/
-
-    - name: Unzip and deploy on EC2
+    - name: Copy files to EC2
       run: |
         ssh -i ec2-key.pem -o StrictHostKeyChecking=no ubuntu@65.0.29.154 << 'EOF'
-          sudo apt update && sudo apt install unzip -y
-          rm -rf ~/app
-          mkdir ~/app
-          unzip -o ~/app.zip -d ~/app
-          cd ~/app
           docker rm -f nodeapp || true
           docker rmi nodeapp || true
-          docker build -t nodeapp .
-          docker run -d -p 80:3000 --name nodeapp nodeapp
         EOF
 
-
+        scp -i ec2-key.pem -o StrictHostKeyChecking=no -r . ubuntu@65.0.29.154:~/app
 
     - name: Build and run Docker container on EC2
       run: |
