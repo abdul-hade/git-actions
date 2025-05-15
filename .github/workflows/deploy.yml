@@ -1,0 +1,36 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install SSH key
+      uses: webfactory/ssh-agent@v0.7.0
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+
+    - name: Copy files to EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no ec2-user@<YOUR_EC2_PUBLIC_IP> << 'EOF'
+          docker rm -f nodeapp || true
+          docker rmi nodeapp || true
+        EOF
+
+        scp -r . ec2-user@<YOUR_EC2_PUBLIC_IP>:~/app
+
+    - name: Build and run Docker container on EC2
+      run: |
+        ssh -o StrictHostKeyChecking=no ec2-user@<YOUR_EC2_PUBLIC_IP> << 'EOF'
+          cd ~/app
+          docker build -t nodeapp .
+          docker run -d -p 80:3000 --name nodeapp nodeapp
+        EOF
